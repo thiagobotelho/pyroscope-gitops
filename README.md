@@ -19,8 +19,14 @@ flowchart LR
 ```
 
 O perfil CRC usa `-target=all`, conforme o modo monolítico documentado pelo
-Grafana Pyroscope. Esse modo é simples e adequado para laboratório; para HA ou
-retenção formal, use o Helm chart oficial em modo microservices/object storage.
+Grafana Pyroscope. O metastore Raft é inicializado com um único peer estático
+baseado no próprio pod (`$(POD_NAME).pyroscope-headless...`) e
+`bootstrap-expect-peers=1`. Isso evita falhas no CRC quando a resolução DNS SRV
+do Service headless retorna o mesmo pod duplicado, uma vez com trailing dot e
+outra sem trailing dot.
+
+Esse modo é simples e adequado para laboratório; para HA ou retenção formal,
+use o Helm chart oficial em modo microservices/object storage.
 
 ## Deploy
 
@@ -47,6 +53,29 @@ O `grafana-gitops` provisiona:
 Sem aplicações instrumentadas, o datasource fica saudável, mas Profiles
 Drilldown não mostrará flamegraphs. Para correlação trace → profile, as spans
 precisam carregar labels compatíveis e, idealmente, `pyroscope.profile.id`.
+
+## Troubleshooting
+
+Se o pod ficar em `CrashLoopBackOff`, confira primeiro o bootstrap Raft:
+
+```bash
+oc -n pyroscope logs pyroscope-0 --tail=120
+```
+
+O erro abaixo indica que o Service headless/SRV DNS retornou peers duplicados:
+
+```text
+expected number of bootstrap peers not reached: got 2, expected 1
+```
+
+Neste repositório o bootstrap usa peer estático para o modo monolítico CRC. Se
+o erro voltar após alterações, valide se o argumento abaixo continua renderizado
+no StatefulSet:
+
+```bash
+oc -n pyroscope get pod pyroscope-0 -o \
+  jsonpath='{.spec.containers[?(@.name=="pyroscope")].args}'
+```
 
 ## Segurança
 

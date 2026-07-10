@@ -3,7 +3,8 @@
 Este repositório usa `base/` e `overlays/{desenvolvimento,aceite,producao}`.
 
 - `desenvolvimento`: perfil CRC, Pyroscope monolítico, PVC de 10 GiB e sem
-  Route pública.
+  Route pública. O bootstrap Raft usa peer estático do próprio pod para evitar
+  duplicidade de peers na resolução DNS SRV do CRC.
 - `aceite`: mesmo desenho, PVC de 25 GiB.
 - `producao`: PVC maior e recursos mais altos, mas ainda monolítico; produção
   real deve avaliar Helm/microservices/object storage.
