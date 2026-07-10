@@ -82,7 +82,10 @@ oc -n pyroscope get pod pyroscope-0 -o \
 
 - Sem Route pública.
 - NetworkPolicy libera somente Grafana, Prometheus Apps, Zabbix, namespace
-  `observability` e tráfego interno do próprio Pyroscope.
+  `observability`, namespaces rotulados com `observability=enabled` e tráfego
+  interno do próprio Pyroscope. Use essa label nos namespaces de aplicações que
+  enviarão profiles para o Pyroscope, evitando regras presas a nomes de
+  ambientes como `dev`, `aceite` ou `producao`.
 - ServiceAccount com Role local apenas para descoberta de endpoints/pods usada
   pelo backend.
 - Sem Secrets obrigatórios neste perfil.
