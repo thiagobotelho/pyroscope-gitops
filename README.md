@@ -21,9 +21,10 @@ flowchart LR
 O perfil CRC usa `-target=all`, conforme o modo monolítico documentado pelo
 Grafana Pyroscope. O metastore Raft é inicializado com um único peer estático
 baseado no próprio pod (`$(POD_NAME).pyroscope-headless...`) e
-`bootstrap-expect-peers=1`. Isso evita falhas no CRC quando a resolução DNS SRV
-do Service headless retorna o mesmo pod duplicado, uma vez com trailing dot e
-outra sem trailing dot.
+`bootstrap-expect-peers=1`. O `server-id` fica sem porta, enquanto o
+`advertise-address` e o `bootstrap-peers` usam `:9099`; isso evita falhas no CRC
+quando a resolução DNS SRV do Service headless retorna o mesmo pod duplicado, ou
+quando o bootstrap e o nó local derivam IDs diferentes para o mesmo endereço.
 
 Esse modo é simples e adequado para laboratório; para HA ou retenção formal,
 use o Helm chart oficial em modo microservices/object storage.

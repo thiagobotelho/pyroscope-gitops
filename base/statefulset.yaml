@@ -46,7 +46,7 @@ spec:
             - -metastore.raft.dir=/data-metastore/raft
             - -metastore.raft.snapshots-dir=/data-metastore/raft
             - -metastore.raft.bind-address=:9099
-            - -metastore.raft.server-id=$(POD_NAME).pyroscope-headless.pyroscope.svc.cluster.local:9099
+            - -metastore.raft.server-id=$(POD_NAME).pyroscope-headless.pyroscope.svc.cluster.local
             - -metastore.raft.advertise-address=$(POD_NAME).pyroscope-headless.pyroscope.svc.cluster.local:9099
             - -metastore.raft.bootstrap-peers=$(POD_NAME).pyroscope-headless.pyroscope.svc.cluster.local:9099
             - -metastore.raft.bootstrap-expect-peers=1
