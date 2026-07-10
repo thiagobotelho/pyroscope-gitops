@@ -1,0 +1,135 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: pyroscope
+  namespace: pyroscope
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+spec:
+  replicas: 1
+  serviceName: pyroscope-headless
+  podManagementPolicy: Parallel
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: pyroscope
+      app.kubernetes.io/component: all
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: pyroscope
+        app.kubernetes.io/component: all
+        app.kubernetes.io/part-of: observability
+      annotations:
+        profiles.grafana.com/service_name: pyroscope
+        profiles.grafana.com/service_namespace: pyroscope
+    spec:
+      serviceAccountName: pyroscope
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: pyroscope
+          image: docker.io/grafana/pyroscope:2.1.0
+          imagePullPolicy: IfNotPresent
+          args:
+            - -target=all
+            - -self-profiling.disable-push=true
+            - -server.http-listen-port=4040
+            - -memberlist.cluster-label=pyroscope
+            - -memberlist.join=dns+pyroscope-memberlist.pyroscope.svc.cluster.local:7946
+            - -config.file=/etc/pyroscope/config.yaml
+            - -runtime-config.file=/etc/pyroscope/overrides/overrides.yaml
+            - -query-backend.address=dns:///_grpc._tcp.pyroscope-headless.pyroscope.svc.cluster.local:9095
+            - -metastore.address=kubernetes:///pyroscope-headless.pyroscope.svc.cluster.local:9095
+            - -metastore.data-dir=/data-metastore/data
+            - -metastore.raft.dir=/data-metastore/raft
+            - -metastore.raft.snapshots-dir=/data-metastore/raft
+            - -metastore.raft.bind-address=:9099
+            - -metastore.raft.server-id=$(POD_NAME).pyroscope-headless.pyroscope.svc.cluster.local:9099
+            - -metastore.raft.advertise-address=$(POD_NAME).pyroscope-headless.pyroscope.svc.cluster.local:9099
+            - -metastore.raft.bootstrap-peers=dnssrvnoa+_raft._tcp.pyroscope-headless.pyroscope.svc.cluster.local:9099
+            - -architecture.storage=v2
+            - -log.level=info
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: NAMESPACE_FQDN
+              value: pyroscope.svc.cluster.local
+            - name: PYROSCOPE_METASTORE_SERVICE
+              value: pyroscope-headless.pyroscope.svc.cluster.local:9099
+          ports:
+            - name: http2
+              containerPort: 4040
+              protocol: TCP
+            - name: memberlist
+              containerPort: 7946
+              protocol: TCP
+            - name: grpc
+              containerPort: 9095
+              protocol: TCP
+            - name: raft
+              containerPort: 9099
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: http2
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /ready
+              port: http2
+            initialDelaySeconds: 60
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 750m
+              memory: 1Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: config
+              mountPath: /etc/pyroscope/config.yaml
+              subPath: config.yaml
+              readOnly: true
+            - name: overrides-config
+              mountPath: /etc/pyroscope/overrides/overrides.yaml
+              subPath: overrides.yaml
+              readOnly: true
+            - name: data
+              mountPath: /data
+            - name: data
+              mountPath: /data-metastore
+              subPath: .metastore
+      volumes:
+        - name: config
+          configMap:
+            name: pyroscope-config
+            items:
+              - key: config.yaml
+                path: config.yaml
+        - name: overrides-config
+          configMap:
+            name: pyroscope-config
+            items:
+              - key: overrides.yaml
+                path: overrides.yaml
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 10Gi

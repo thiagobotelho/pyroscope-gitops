@@ -1,0 +1,24 @@
+apiVersion: monitoring.rhobs/v1
+kind: ServiceMonitor
+metadata:
+  name: pyroscope
+  namespace: pyroscope
+  labels:
+    app.kubernetes.io/name: pyroscope
+    app.kubernetes.io/part-of: observability
+    observability: platform
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: pyroscope
+      app.kubernetes.io/component: all
+  namespaceSelector:
+    matchNames:
+      - pyroscope
+  endpoints:
+    - port: http2
+      path: /metrics
+      interval: 30s

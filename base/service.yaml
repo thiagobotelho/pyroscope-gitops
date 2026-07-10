@@ -1,0 +1,82 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: pyroscope
+  namespace: pyroscope
+  labels:
+    app.kubernetes.io/name: pyroscope
+    app.kubernetes.io/component: all
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: pyroscope
+    app.kubernetes.io/component: all
+  ports:
+    - name: http2
+      port: 4040
+      targetPort: http2
+      protocol: TCP
+    - name: grpc
+      port: 9095
+      targetPort: grpc
+      protocol: TCP
+    - name: raft
+      port: 9099
+      targetPort: raft
+      protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pyroscope-headless
+  namespace: pyroscope
+  labels:
+    app.kubernetes.io/name: pyroscope
+    app.kubernetes.io/component: all
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+    prometheus.io/service-monitor: "false"
+spec:
+  type: ClusterIP
+  clusterIP: None
+  publishNotReadyAddresses: true
+  selector:
+    app.kubernetes.io/name: pyroscope
+    app.kubernetes.io/component: all
+  ports:
+    - name: http2
+      port: 4040
+      targetPort: http2
+      protocol: TCP
+    - name: grpc
+      port: 9095
+      targetPort: grpc
+      protocol: TCP
+    - name: raft
+      port: 9099
+      targetPort: raft
+      protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pyroscope-memberlist
+  namespace: pyroscope
+  labels:
+    app.kubernetes.io/name: pyroscope
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  type: ClusterIP
+  clusterIP: None
+  publishNotReadyAddresses: true
+  selector:
+    app.kubernetes.io/name: pyroscope
+    app.kubernetes.io/component: all
+  ports:
+    - name: memberlist
+      port: 7946
+      targetPort: memberlist
+      protocol: TCP
