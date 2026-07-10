@@ -55,6 +55,8 @@ Sem aplicações instrumentadas, o datasource fica saudável, mas Profiles
 Drilldown não mostrará flamegraphs. Para correlação trace → profile, as spans
 precisam carregar labels compatíveis e, idealmente, `pyroscope.profile.id`.
 
+Manual geral de instrumentação: [docs/COMO-INSTRUMENTAR.md](docs/COMO-INSTRUMENTAR.md).
+
 ## Troubleshooting
 
 Se o pod ficar em `CrashLoopBackOff`, confira primeiro o bootstrap Raft:
