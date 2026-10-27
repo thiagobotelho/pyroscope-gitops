@@ -2,6 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: pyroscope
+  # Namespace deste objeto; não confundir com seleção de namespaces de origem.
   namespace: pyroscope
   labels:
     app.kubernetes.io/name: pyroscope
@@ -10,6 +11,7 @@ metadata:
     argocd.argoproj.io/sync-wave: "2"
 spec:
   type: ClusterIP
+  # Seletores precisam corresponder aos labels dos recursos de destino.
   selector:
     app.kubernetes.io/name: pyroscope
     app.kubernetes.io/component: all

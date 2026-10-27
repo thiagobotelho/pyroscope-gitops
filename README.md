@@ -102,3 +102,7 @@ Veja [docs/AMBIENTES.md](docs/AMBIENTES.md).
 - [Deploy com Helm](https://grafana.com/docs/pyroscope/latest/deploy-kubernetes/helm/)
 - [Deployment modes](https://grafana.com/docs/pyroscope/latest/reference-pyroscope-architecture/deployment-modes/)
 - [Grafana Pyroscope datasource](https://grafana.com/docs/grafana/latest/datasources/pyroscope/configure-pyroscope-data-source/)
+
+## Aprender a configuração
+
+Consulte o [guia comentado](docs/APRENDIZADO.md) para entender componentes, escolhas, testes positivos/negativos e reversão.
