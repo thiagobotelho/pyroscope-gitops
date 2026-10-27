@@ -10,10 +10,15 @@ jobs:
   kustomize:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: azure/setup-kubectl@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - run: kubectl version --client
       - name: Render overlays
         run: |
           kubectl kustomize overlays/desenvolvimento >/tmp/pyroscope-dev.yaml
           kubectl kustomize overlays/aceite >/tmp/pyroscope-aceite.yaml
           kubectl kustomize overlays/producao >/tmp/pyroscope-prod.yaml
+      - name: Validar schemas de CRDs
+        run: |
+          python3 -m venv /tmp/crd-schema-venv
+          /tmp/crd-schema-venv/bin/pip install PyYAML==6.0.3 jsonschema==4.26.0
+          /tmp/crd-schema-venv/bin/python tests/validate-crds.py

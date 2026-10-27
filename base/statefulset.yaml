@@ -2,13 +2,16 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: pyroscope
+  # Namespace deste objeto; não confundir com seleção de namespaces de origem.
   namespace: pyroscope
   annotations:
     argocd.argoproj.io/sync-wave: "3"
 spec:
+  # Número de instâncias; réplicas isoladamente não garantem alta disponibilidade.
   replicas: 1
   serviceName: pyroscope-headless
   podManagementPolicy: Parallel
+  # Seletores precisam corresponder aos labels dos recursos de destino.
   selector:
     matchLabels:
       app.kubernetes.io/name: pyroscope
@@ -24,6 +27,7 @@ spec:
         profiles.grafana.com/service_namespace: pyroscope
     spec:
       serviceAccountName: pyroscope
+      # Restringe privilégios do processo; conferir compatibilidade com a SCC.
       securityContext:
         runAsNonRoot: true
         seccompProfile:
@@ -74,12 +78,14 @@ spec:
             - name: raft
               containerPort: 9099
               protocol: TCP
+          # Prontidão controla recebimento de tráfego, sem provar integrações externas.
           readinessProbe:
             httpGet:
               path: /ready
               port: http2
             initialDelaySeconds: 20
             periodSeconds: 10
+          # Falha desta sonda pode reiniciar o container; evite depender de serviços externos.
           livenessProbe:
             httpGet:
               path: /ready
@@ -125,6 +131,7 @@ spec:
             items:
               - key: overrides.yaml
                 path: overrides.yaml
+  # Cada réplica mantém seu volume; remover o workload não é um plano de recuperação.
   volumeClaimTemplates:
     - metadata:
         name: data
