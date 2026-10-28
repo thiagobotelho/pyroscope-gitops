@@ -2,7 +2,6 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: pyroscope
-  # Namespace deste objeto; não confundir com seleção de namespaces de origem.
   namespace: pyroscope
   annotations:
     argocd.argoproj.io/sync-wave: "3"

@@ -2,7 +2,6 @@ apiVersion: monitoring.rhobs/v1
 kind: ServiceMonitor
 metadata:
   name: pyroscope
-  # Namespace deste objeto; não confundir com seleção de namespaces de origem.
   namespace: pyroscope
   labels:
     app.kubernetes.io/name: pyroscope
